@@ -1,9 +1,9 @@
 [package]
 name = "rust_md5"
-version = "0.1.0"
-authors = ["Owen Stephens <owen@owenstephens.co.uk>"]
+version = "0.2.0"
+authors = ["Owen Stephens <owen@owenstephens.co.uk>", "Cerberuser <k.bagrov@g.nsu.ru>"]
 
 [dependencies]
 byteorder = "0.5.1"
 custom_derive = "0.1.5"
-newtype_derive = "0.1.4"
+newtype_derive = "0.1.6"

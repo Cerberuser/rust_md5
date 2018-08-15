@@ -11,7 +11,7 @@ use std::io::prelude::*;
 mod md5;
 mod util;
 
-fn process_input<R>(filename: &String, input: R)
+fn process_input<R>(filename: &str, input: R)
     where R: Read
 {
     let mut input = input;
@@ -21,7 +21,7 @@ fn process_input<R>(filename: &String, input: R)
         panic!("Can't read: {}", x);
     }
 
-    let mut hash_vec = &mut Vec::new();
+    let hash_vec = &mut Vec::new();
     md5::hash(data, hash_vec);
 
     let mut out = io::stdout();

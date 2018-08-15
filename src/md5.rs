@@ -1,14 +1,14 @@
 extern crate byteorder;
 
+use std::mem;
 use std::iter;
 use std::io::Cursor;
 use std::ops::Add;
-use std::ops::Not;
 use std::ops::Shl;
 use self::byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
 
 pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
-    let mut vec = &mut input_vec.clone();
+    let vec = &mut input_vec.clone();
 
     let bit_len = vec.len() * 8;
     pad_vec(vec);
@@ -20,6 +20,19 @@ pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
     output_vec.write_u32::<LittleEndian>(res.b.0).unwrap();
     output_vec.write_u32::<LittleEndian>(res.c.0).unwrap();
     output_vec.write_u32::<LittleEndian>(res.d.0).unwrap();
+}
+
+struct Md5Reader<T> { internal: Box<Iterator<Item = T>> }
+impl<T> Iterator for Md5Reader<T> {
+    type Item = u8;
+    fn next(&mut self) -> Option<u8> {
+        match self.internal.next() {  
+            Some(item) => unsafe {
+                mem::transmute_copy(&item)
+            }
+            None => None
+        }
+    }
 }
 
 fn pad_vec(vec: &mut Vec<u8>) {
@@ -131,7 +144,7 @@ fn build_table() -> Vec<WrappingRotating> {
     //   is equal to the integer part of 4294967296 times abs(sin(i)), where i
     //   is in radians. The elements of the table are given in the appendix.
 
-    let mut vec = &mut Vec::new();
+    let vec = &mut Vec::new();
 
     for i in 1..65 {
         let x = (2f64.powi(32) * (i as f64).sin().abs()) as u32;
