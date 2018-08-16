@@ -1,18 +1,18 @@
 use std::iter;
 
-struct Md5Reader<T> {
-    internal: Box<Iterator<Item = T>>,
+struct Md5Reader {
+    internal: Box<Iterator<Item = u8>>,
     ending: bool,
     len: u64
 }
 
-impl Md5Reader<u8> {
-    fn new<I>(iter: I) -> Md5Reader<u8> where I: Iterator<Item = u8> {
-        Md5Reader{internal: Box::new(iter), ending: false, len: 0}
+impl Md5Reader {
+    fn new<I>(iter: I) -> Md5Reader where I: Iterator<Item = u8> + Clone {
+        Md5Reader{internal: Box::new(iter.clone()), ending: false, len: 0}
     }
 }
 
-impl Iterator for Md5Reader<u8> {
+impl Iterator for Md5Reader {
     type Item = u8;
 
     fn next(&mut self) -> Option<u8> {
@@ -62,6 +62,5 @@ mod test {
     fn test_iterator() {
         let iter = Md5Reader::new(String::from("12345").as_bytes().into_iter());
         let bytes: Vec<u8> = iter.collect();
-        fail!(bytes);
     }
 }
