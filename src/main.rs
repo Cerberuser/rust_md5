@@ -1,15 +1,11 @@
-#[macro_use]
-extern crate custom_derive;
-#[macro_use]
-extern crate newtype_derive;
+extern crate rust_md5;
+
+use rust_md5::{md5, util};
 
 use std::env;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-
-mod md5;
-mod util;
 
 fn process_input<R>(filename: &str, input: R)
     where R: Read

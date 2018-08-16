@@ -1,11 +1,9 @@
-extern crate byteorder;
-
 use std::mem;
 use std::iter;
 use std::io::Cursor;
 use std::ops::Add;
 use std::ops::Shl;
-use self::byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
+use byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
 
 pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
     let vec = &mut input_vec.clone();
