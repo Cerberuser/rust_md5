@@ -5,6 +5,8 @@ use std::ops::Add;
 use std::ops::Shl;
 use byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
 
+mod reader;
+
 pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
     let vec = &mut input_vec.clone();
 
