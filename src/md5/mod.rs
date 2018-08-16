@@ -20,19 +20,6 @@ pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
     output_vec.write_u32::<LittleEndian>(res.d.0).unwrap();
 }
 
-struct Md5Reader<T> { internal: Box<Iterator<Item = T>> }
-impl<T> Iterator for Md5Reader<T> {
-    type Item = u8;
-    fn next(&mut self) -> Option<u8> {
-        match self.internal.next() {  
-            Some(item) => unsafe {
-                mem::transmute_copy(&item)
-            }
-            None => None
-        }
-    }
-}
-
 fn pad_vec(vec: &mut Vec<u8>) {
     vec.push(0x80 as u8); // i.e. only the MSB is set.
 
@@ -287,7 +274,7 @@ mod test {
 
     fn test_string_hash(input: &str, expected: &str) {
         let vec = input.as_bytes().to_vec();
-        let mut output = &mut Vec::new();
+        let output = &mut Vec::new();
 
         hash(vec, output);
 
