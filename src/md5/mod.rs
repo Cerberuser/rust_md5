@@ -1,8 +1,7 @@
 use std::mem;
 use std::iter;
 use std::io::Cursor;
-use std::ops::Add;
-use std::ops::Shl;
+use std::ops::{Add, Shl, ShlAssign};
 use byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
 
 mod reader;
@@ -90,6 +89,13 @@ impl Add for WrappingRotating {
         WrappingRotating(self.0.wrapping_add(rhs.0))
     }
 }
+impl Add<u32> for WrappingRotating {
+    type Output = WrappingRotating;
+
+    fn add(self, rhs: u32) -> WrappingRotating {
+        WrappingRotating(self.0.wrapping_add(rhs))
+    }
+}
 
 // Let us use << syntax for rotate left as per the spec.
 impl Shl<u32> for WrappingRotating {
@@ -98,6 +104,9 @@ impl Shl<u32> for WrappingRotating {
     fn shl(self, rhs: u32) -> WrappingRotating {
         WrappingRotating(self.0.rotate_left(rhs))
     }
+}
+impl ShlAssign<u32> for WrappingRotating {
+    fn shl_assign(&mut self, rhs: u32) { self.0 = self.0.rotate_left(rhs) }
 }
 
 fn initial_md_buffer() -> DigestBuffer {

@@ -1,66 +1,73 @@
 use std::iter;
+use super::WrappingRotating;
 
-struct Md5Reader {
-    internal: Box<Iterator<Item = u8>>,
-    ending: bool,
-    len: u64
+enum ReaderState {
+    DataFlow,
+    Padding(u8),
+    SizeWriting(u8),
+    Ended
+}
+use self::ReaderState::*;
+
+struct Md5Reader<'a> {
+    internal: Box<Iterator<Item = &'a u8> + 'a>,
+    state: ReaderState,
+    len: u64,
 }
 
-impl Md5Reader {
-    fn new<I>(iter: I) -> Md5Reader where I: Iterator<Item = u8> + Clone {
-        Md5Reader{internal: Box::new(iter.clone()), ending: false, len: 0}
+impl<'a> Md5Reader<'a> {
+    fn new<I>(base: I) -> Md5Reader<'a> where I: IntoIterator<Item = &'a u8> + 'a {
+        Md5Reader{ internal: Box::new(base.into_iter()), state: DataFlow, len: 0 }
     }
 }
 
-impl Iterator for Md5Reader {
-    type Item = u8;
+impl<'a> Iterator for Md5Reader<'a> {
+    type Item = WrappingRotating;
 
-    fn next(&mut self) -> Option<u8> {
-        match self.internal.next() {  
-            Some(item) => {
-                self.len += 1;
-                Some(item)
-            },
-            None => match self.ending {
-                true => None,
-                false => {
-                    self.ending = true;
-                    self.internal = ending_generate(self.len);
-                    self.internal.next()
+    fn next(&mut self) -> Option<WrappingRotating> {
+        let mut buf = WrappingRotating(0);
+
+        for i in 0..3 {
+            match self.state {
+                DataFlow => {
+                    match self.internal.next() {
+                        Some(&item) => {
+                            self.len += 1;
+                            buf = (buf << 8) + item as u32;
+                        },
+                        None => {
+                            self.state = Padding(120 - (self.len % 64) as u8);
+                            buf = (buf << 8) + 0x80;
+                        }
+                    }
+                },
+                Padding(size) => {
+                    buf <<= 8;
+                    self.state = if size > 8 { Padding(size - 8) } else { SizeWriting(64) };
+                },
+                SizeWriting(size) => {
+                    buf = (buf << 8) + self.len as u8 as u32;
+                    self.len >>= 8;
+                    self.state = if size > 8 { SizeWriting(size - 8) } else { Ended }
+                },
+                Ended => {
+                    return None;
                 }
             }
         }
+        Some(buf)
     }
 }
-
-fn ending_generate(len: u64) -> Box<Iterator<Item = u8>> {
-    let vec = vec![0x80];
-
-    // Number of additional bytes needed to make the len (in bits) respect:
-    // (vec.len() * 8) == 448 (mod 512) i.e. vec.len() == 56 (mod 64)
-    let mut diff = 56 - (vec.len() % 64) as i8;
-
-    // We can't pad a negative number of bits, so pad up to the next multiple
-    // of 64.
-    if diff < 0 {
-        diff += 64;
-    }
-    vec.extend(iter::repeat(0).take(diff as usize));
-
-    // adding the length, as stated, from the least-significant byte
-    for shift in 0..7 {
-        vec.push((len >> (shift * 8)) as u8);
-    }
-
-    assert_eq!(vec.len() % 64, 0);
-    Box::new(vec.into_iter())
-}
-
-#[cfg(test)]
-mod test {
-    #[test]
-    fn test_iterator() {
-        let iter = Md5Reader::new(String::from("12345").as_bytes().into_iter());
-        let bytes: Vec<u8> = iter.collect();
-    }
-}
+//
+//#[cfg(test)]
+//mod test {
+//
+//    #[test]
+//    fn test_iterator() {
+//        let buf = String::from("12345");
+//        let iter = super::Md5Reader::new(buf.as_bytes());
+//        let bytes: Vec<u32> = iter.map(|item| item.0).collect();
+//        panic!("Was: {:?}, became: {:?}", buf.as_bytes(), bytes);
+//    }
+//
+//}
