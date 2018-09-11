@@ -1,5 +1,4 @@
-use std::iter;
-use super::WrappingRotating;
+use super::types::*;
 
 enum ReaderState {
     DataFlow,
@@ -9,14 +8,14 @@ enum ReaderState {
 }
 use self::ReaderState::*;
 
-struct Md5Reader<'a> {
+pub struct Md5Reader<'a> {
     internal: Box<Iterator<Item = &'a u8> + 'a>,
     state: ReaderState,
     len: u64,
 }
 
 impl<'a> Md5Reader<'a> {
-    fn new<I>(base: I) -> Md5Reader<'a> where I: IntoIterator<Item = &'a u8> + 'a {
+    pub fn new<I>(base: I) -> Md5Reader<'a> where I: IntoIterator<Item = &'a u8> + 'a {
         Md5Reader{ internal: Box::new(base.into_iter()), state: DataFlow, len: 0 }
     }
 }
@@ -27,7 +26,7 @@ impl<'a> Iterator for Md5Reader<'a> {
     fn next(&mut self) -> Option<WrappingRotating> {
         let mut buf = WrappingRotating(0);
 
-        for i in 0..3 {
+        for _ in 0..3 {
             match self.state {
                 DataFlow => {
                     match self.internal.next() {
