@@ -1,9 +1,10 @@
-use std::ops::{Add, Shl, ShlAssign};
+use std::ops::{Add, Shl, ShlAssign, BitOr, BitOrAssign};
 use std::fmt::{Debug, Display, Formatter, Result};
 use std::fmt::Binary;
 
 custom_derive! {
     #[derive(NewtypeNot, NewtypeBitAnd, NewtypeBitOr, NewtypeBitXor)]
+    #[derive(NewtypeBitAndAssign, NewtypeBitOrAssign, NewtypeBitXorAssign)]
     #[derive(Clone, Copy)]
     pub struct WrappingRotating(pub u32);
 }
@@ -56,6 +57,18 @@ impl Shl<u32> for WrappingRotating {
 }
 impl ShlAssign<u32> for WrappingRotating {
     fn shl_assign(&mut self, rhs: u32) { self.0 = self.0.rotate_left(rhs) }
+}
+
+// Let us use | syntax for bitwise "or".
+impl BitOr<u32> for WrappingRotating {
+    type Output = WrappingRotating;
+
+    fn bitor(self, rhs: u32) -> WrappingRotating {
+        WrappingRotating(self.0 | rhs)
+    }
+}
+impl BitOrAssign<u32> for WrappingRotating {
+    fn bitor_assign(&mut self, rhs: u32) { self.0 = self.0 | rhs }
 }
 
 // Debug information.

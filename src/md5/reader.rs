@@ -28,29 +28,25 @@ impl<'a> Iterator for Md5Reader<'a> {
         let mut list = [WrappingRotating(0); 16];
 
         for index in 0..=15 {
-            println!("Generating element {}", index);
-            for _ in 0..=3 {
-                println!("Reader state: {:?}", self.state);
+            for shift in 0..=3 {
                 match self.state {
                     DataFlow => {
                         match self.internal.next() {
                             Some(item) => {
                                 self.len += 1;
-                                println!("Read item: {}, current length: {}", item, self.len);
-                                list[index] = (list[index] << 8) + item as u32;
+                                list[index] |= (item as u32) << (8 * shift);
                             },
                             None => {
                                 self.state = Padding(64 - ((self.len + 9) % 64) as u8);
-                                list[index] = (list[index] << 8) + 0x80;
+                                list[index] |= 0x80 << (8 * shift);
                             }
                         }
                     },
                     Padding(size) => {
-                        list[index] <<= 8;
                         self.state = if size > 1 { Padding(size - 1) } else { SizeWriting(8) };
                     },
                     SizeWriting(size) => {
-                        list[index] = (list[index] << 8) + self.len as u8 as u32;
+                        list[index] |= (self.len as u8 as u32) << (8 * shift);
                         self.len >>= 8;
                         self.state = if size > 1 { SizeWriting(size - 1) } else { Ended }
                     },
