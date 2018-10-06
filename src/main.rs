@@ -1,6 +1,6 @@
-extern crate rust_md5_updated;
+extern crate rust_md5;
 
-use rust_md5_updated::{md5, util};
+use rust_md5::{md5, util};
 
 use std::env;
 use std::fs::File;

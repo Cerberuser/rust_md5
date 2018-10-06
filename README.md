@@ -2,9 +2,7 @@
 ===============
 
 This is a very simple implementation of the [md5 specification - RFC 1321][md5]
-used to begin learning Rust. In particular, it makes no attempt to be
-efficient, e.g., it reads all the input data before starting processing, rather
-than streaming.
+used to begin learning Rust.
 
 ## Usage
 

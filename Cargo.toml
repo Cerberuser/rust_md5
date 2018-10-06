@@ -1,7 +1,9 @@
 [package]
-name = "rust_md5_updated"
+name = "rust_md5"
 version = "0.2.0"
 authors = ["Owen Stephens <owen@owenstephens.co.uk>", "Cerberuser <k.bagrov@g.nsu.ru>"]
+description = "Simple MD5 realization"
+license = "MIT"
 
 [dependencies]
 byteorder = "0.5.1"
