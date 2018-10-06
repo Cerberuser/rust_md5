@@ -92,11 +92,6 @@ fn perform_rounds(buffer: DigestBuffer, input: Md5Reader) -> DigestBuffer {
     let t = build_table();
 
     for x in input {
-
-        println!("x = [");
-        for i in x.iter() { println!("\t{:b}", i) };
-        println!("]");
-
         let prev_buf = buf.clone();
 
         round1!(buf, x, t, a, b, c, d, 0, 7, 1);

@@ -34,6 +34,8 @@ impl<'a> Iterator for Md5Reader<'a> {
                         match self.internal.next() {
                             Some(item) => {
                                 self.len += 1;
+                                // for very long inputs - wrap the length around
+                                if self.len == 1 << 56 { self.len = 0 };
                                 list[index] |= (item as u32) << (8 * shift);
                             },
                             None => {
@@ -43,7 +45,7 @@ impl<'a> Iterator for Md5Reader<'a> {
                         }
                     },
                     Padding(size) => {
-                        self.state = if size > 1 { Padding(size - 1) } else { SizeWriting(8) };
+                        self.state = if size > 1 { Padding(size - 1) } else { self.len = self.len * 8; SizeWriting(8) };
                     },
                     SizeWriting(size) => {
                         list[index] |= (self.len as u8 as u32) << (8 * shift);

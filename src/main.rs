@@ -10,7 +10,7 @@ use std::io::prelude::*;
 fn process_input<R>(filename: &str, input: R)
     where R: Read
 {
-    let input = input;
+    let input = io::BufReader::new(input);
 
     let input_iter = input.bytes().map(|res| res.unwrap());
 
