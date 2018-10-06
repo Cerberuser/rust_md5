@@ -1,4 +1,6 @@
 use std::ops::{Add, Shl, ShlAssign};
+use std::fmt::{Debug, Display, Formatter, Result};
+use std::fmt::Binary;
 
 custom_derive! {
     #[derive(NewtypeNot, NewtypeBitAnd, NewtypeBitOr, NewtypeBitXor)]
@@ -54,4 +56,21 @@ impl Shl<u32> for WrappingRotating {
 }
 impl ShlAssign<u32> for WrappingRotating {
     fn shl_assign(&mut self, rhs: u32) { self.0 = self.0.rotate_left(rhs) }
+}
+
+// Debug information.
+impl Display for WrappingRotating {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "WR({})", self.0)
+    }
+}
+impl Debug for WrappingRotating {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}, {}, {}, {}", (self.0 >> 24) & 0xff, (self.0 >> 16) & 0xff, (self.0 >> 8) & 0xff, self.0 & 0xff)
+    }
+}
+impl Binary for WrappingRotating {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "({:>032b})", self.0)
+    }
 }

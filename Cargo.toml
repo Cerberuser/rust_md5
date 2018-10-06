@@ -1,5 +1,5 @@
 [package]
-name = "rust_md5"
+name = "rust_md5_updated"
 version = "0.2.0"
 authors = ["Owen Stephens <owen@owenstephens.co.uk>", "Cerberuser <k.bagrov@g.nsu.ru>"]
 

@@ -1,6 +1,6 @@
-extern crate rust_md5;
+extern crate rust_md5_updated;
 
-use rust_md5::{md5, util};
+use rust_md5_updated::{md5, util};
 
 use std::env;
 use std::fs::File;
@@ -10,15 +10,12 @@ use std::io::prelude::*;
 fn process_input<R>(filename: &str, input: R)
     where R: Read
 {
-    let mut input = input;
-    let mut data = Vec::new();
+    let input = input;
 
-    if let Err(x) = input.read_to_end(&mut data) {
-        panic!("Can't read: {}", x);
-    }
+    let input_iter = input.bytes().map(|res| res.unwrap());
 
     let hash_vec = &mut Vec::new();
-    md5::hash(data, hash_vec);
+    md5::hash(input_iter, hash_vec);
 
     let mut out = io::stdout();
     out.write(&util::to_hex_string(hash_vec).into_bytes()).unwrap();

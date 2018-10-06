@@ -1,6 +1,4 @@
-use std::iter;
-use std::io::Cursor;
-use byteorder::{LittleEndian, WriteBytesExt, ReadBytesExt};
+use byteorder::{LittleEndian, WriteBytesExt};
 
 mod reader;
 mod types;
@@ -8,51 +6,16 @@ mod types;
 use self::reader::*;
 use self::types::*;
 
-pub fn hash(input_vec: Vec<u8>, output_vec: &mut Vec<u8>) {
-    let vec = &mut input_vec.clone();
+pub fn hash<'a, I>(input_iterator: I, output_vec: &'a mut Vec<u8>)
+where I: IntoIterator<Item = u8> + 'a
+{
 
-    let bit_len = vec.len() * 8;
-    pad_vec(vec);
-    add_len(vec, bit_len as u64);
-
-    let res = perform_rounds(initial_md_buffer(), vec);
+    let res = perform_rounds(initial_md_buffer(), Md5Reader::new(input_iterator));
 
     output_vec.write_u32::<LittleEndian>(res.a.0).unwrap();
     output_vec.write_u32::<LittleEndian>(res.b.0).unwrap();
     output_vec.write_u32::<LittleEndian>(res.c.0).unwrap();
     output_vec.write_u32::<LittleEndian>(res.d.0).unwrap();
-}
-
-fn pad_vec(vec: &mut Vec<u8>) {
-    vec.push(0x80 as u8); // i.e. only the MSB is set.
-
-    // Number of additional bytes needed to make the len (in bits) respect:
-    // (vec.len() * 8) == 448 (mod 512) i.e. vec.len() == 56 (mod 64)
-    let mut diff = 56 - (vec.len() % 64) as i8;
-
-    // We can't pad a negative number of bits, so pad up to the next multiple
-    // of 64.
-    if diff < 0 {
-        diff += 64;
-    }
-
-    vec.extend(iter::repeat(0).take(diff as usize));
-
-    assert_eq!(vec.len() % 64, 56)
-}
-
-fn add_len(vec: &mut Vec<u8>, bit_len: u64) {
-    // TODO: what if bit_len of the input is > 2^64?
-    let lword_mask = (!0 as u32) as u64;
-    let hword_mask = !lword_mask;
-
-    let lword = (bit_len & lword_mask) as u32;
-    let hword = ((bit_len & hword_mask) >> 32) as u32;
-
-    vec.write_u32::<LittleEndian>(lword).unwrap();
-    vec.write_u32::<LittleEndian>(hword).unwrap();
-
-    assert_eq!(vec.len() % 64, 0)
 }
 
 fn initial_md_buffer() -> DigestBuffer {
@@ -124,19 +87,17 @@ macro_rules! round4 {
     ($($x:tt)*) => (round!($($x)*, i));
 }
 
-fn perform_rounds(buffer: DigestBuffer, vec: &mut Vec<u8>) -> DigestBuffer {
+fn perform_rounds(buffer: DigestBuffer, input: Md5Reader) -> DigestBuffer {
     let mut buf = buffer.clone();
     let t = build_table();
 
-    for chunk in vec.chunks(64) {
+    for x in input {
+
+        println!("x = [");
+        for i in x.iter() { println!("\t{:b}", i) };
+        println!("]");
+
         let prev_buf = buf.clone();
-
-        let mut x = Vec::new();
-
-        for four_bytes in chunk.chunks(4) {
-            let mut c = Cursor::new(four_bytes);
-            x.push(WrappingRotating(c.read_u32::<LittleEndian>().unwrap()));
-        }
 
         round1!(buf, x, t, a, b, c, d, 0, 7, 1);
         round1!(buf, x, t, d, a, b, c, 1, 12, 2);
